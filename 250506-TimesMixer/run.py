@@ -2,10 +2,17 @@ import argparse
 import os
 import torch
 import torch.backends
-from TimesNet import Model
+# from exp.exp_long_term_forecasting import Exp_Long_Term_Forecast
+# from exp.exp_imputation import Exp_Imputation
+# from exp.exp_short_term_forecasting import Exp_Short_Term_Forecast
+# from exp.exp_anomaly_detection import Exp_Anomaly_Detection
+# from exp.exp_classification import Exp_Classification
+# from utils.print_args import print_args
 import random
 import numpy as np
-# import custom_repr
+
+from TimeMixer import Model
+import custom_repr
 from torchinfo import summary
 
 
@@ -18,11 +25,11 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='TimesNet')
 
     # basic config
-    parser.add_argument('--task_name', type=str, default='long_term_forecast',
+    parser.add_argument('--task_name', type=str,  default='long_term_forecast',
                         help='task name, options:[long_term_forecast, short_term_forecast, imputation, classification, anomaly_detection]')
-    parser.add_argument('--is_training', type=int, default=1, help='status')
-    parser.add_argument('--model_id', type=str, default='test', help='model id')
-    parser.add_argument('--model', type=str,  default='TimesNet',
+    parser.add_argument('--is_training', type=int,  default=1, help='status')
+    parser.add_argument('--model_id', type=str,  default='test', help='model id')
+    parser.add_argument('--model', type=str, default='Autoformer',
                         help='model name, options: [Autoformer, Transformer, TimesNet]')
 
     # data loader
@@ -39,7 +46,7 @@ if __name__ == '__main__':
     # forecasting task
     parser.add_argument('--seq_len', type=int, default=96, help='input sequence length')
     parser.add_argument('--label_len', type=int, default=48, help='start token length')
-    parser.add_argument('--pred_len', type=int, default=720, help='prediction sequence length')
+    parser.add_argument('--pred_len', type=int, default=96, help='prediction sequence length')
     parser.add_argument('--seasonal_patterns', type=str, default='Monthly', help='subset for M4')
     parser.add_argument('--inverse', action='store_true', help='inverse output data', default=False)
 
@@ -96,7 +103,7 @@ if __name__ == '__main__':
     parser.add_argument('--use_amp', action='store_true', help='use automatic mixed precision training', default=False)
 
     # GPU
-    parser.add_argument('--use_gpu', type=bool, default=True, help='use gpu')
+    parser.add_argument('--use_gpu', type=bool, default=False, help='use gpu')
     parser.add_argument('--gpu', type=int, default=0, help='gpu')
     parser.add_argument('--gpu_type', type=str, default='cuda', help='gpu type')  # cuda or mps
     parser.add_argument('--use_multi_gpu', action='store_true', help='use multiple gpus', default=False)
@@ -155,14 +162,32 @@ if __name__ == '__main__':
         args.device_ids = [int(id_) for id_ in device_ids]
         args.gpu = args.device_ids[0]
 
-
-
-    args.seq_len = 12
-    args.pred_len = 24
-    args.enc_in = 7
-    args.batch_size = 32
-    args.use_gpu = True
     print('Args in experiment:')
+    args.model = 'TimeMixer'
+    args.seq_len = 96
+    args.label_len =  0
+    args.pred_len = 720
+    args.enc_in = 7
+    args.c_out  = 7
+    args.use_gpu=True
+
+    args.is_training = 1 
+    args.features =  "M"
+    
+    args.task_name == 'long_term_forecast'
+    args.e_layers=2
+    args.des  = 'Exp'
+    args.itr = 1
+    args.down_sampling_layers=3
+    args.down_sampling_window=2
+    args.down_sampling_method = "avg"
+    args.learning_rate=0.01
+    args.d_model=16
+    args.d_ff=32
+    args.train_epochs=10
+    args.patience=10
+    args.batch_size=32
+    args.learning_rate=0.01
     print(args)
 
     x_enc = torch.randn(args.batch_size,args.seq_len,args.enc_in)
@@ -171,11 +196,21 @@ if __name__ == '__main__':
     x_mark_dec = torch.randn(args.batch_size,args.pred_len,4)
 
     model = Model(args)
+
+    
+    print("测试输入(形状): ", x_enc.shape)
+    print("测试 时间 输入(形状): ", x_mark_enc.shape)
     summary(model, input_data=[x_enc, x_mark_enc, x_dec, x_mark_dec])
     print(model)
     total_params = sum(p.numel() for p in model.parameters())
     print(f"模型总参数量: {total_params:,}")
-    outputs = model(x_enc,x_mark_enc,x_dec,x_mark_dec)
-    print(outputs.shape)
 
-    torch.cuda.empty_cache()
+    outputs = model(x_enc,x_mark_enc,x_dec,x_mark_dec)
+    
+    print("模型输出形状: ",outputs.shape)
+
+
+
+    
+
+

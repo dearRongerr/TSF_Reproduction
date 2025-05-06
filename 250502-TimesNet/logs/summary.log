@@ -1,0 +1,45 @@
+Using GPU
+Args in experiment:
+Namespace(activation='gelu', anomaly_ratio=0.25, augmentation_ratio=0, batch_size=32, c_out=7, channel_independence=1, checkpoints='./checkpoints/', d_conv=4, d_ff=2048, d_layers=1, d_model=512, data='ETTh1', data_path='ETTh1.csv', dec_in=7, decomp_method='moving_avg', des='test', device=device(type='cuda', index=0), devices='0,1,2,3', discdtw=False, discsdtw=False, distil=True, down_sampling_layers=0, down_sampling_method=None, down_sampling_window=1, dropout=0.1, dtwwarp=False, e_layers=2, embed='timeF', enc_in=7, expand=2, extra_tag='', factor=1, features='M', freq='h', gpu=0, gpu_type='cuda', inverse=False, is_training=1, itr=1, jitter=False, label_len=48, learning_rate=0.0001, loss='MSE', lradj='type1', magwarp=False, mask_rate=0.25, model='TimesNet', model_id='test', moving_avg=25, n_heads=8, num_kernels=6, num_workers=10, p_hidden_dims=[128, 128], p_hidden_layers=2, patch_len=16, patience=3, permutation=False, pred_len=24, randompermutation=False, root_path='./data/ETT/', rotation=False, scaling=False, seasonal_patterns='Monthly', seed=2, seg_len=96, seq_len=12, shapedtwwarp=False, spawner=False, target='OT', task_name='long_term_forecast', timewarp=False, top_k=5, train_epochs=10, use_amp=False, use_dtw=False, use_gpu=True, use_multi_gpu=False, use_norm=1, wdba=False, windowslice=False, windowwarp=False)
+测试输入形状: [32,12,7]
+输出形状: [32,24,7]
+===============================================================================================
+Layer (type:depth-idx)                        Output Shape              Param #
+===============================================================================================
+Model                                         [32, 24, 7]               --
+├─DataEmbedding: 1-1                          [32, 12, 512]             --
+│    └─TokenEmbedding: 2-1                    [32, 12, 512]             --
+│    │    └─Conv1d: 3-1                       [32, 512, 12]             10,752
+│    └─TimeFeatureEmbedding: 2-2              [32, 12, 512]             --
+│    │    └─Linear: 3-2                       [32, 12, 512]             2,048
+│    └─PositionalEmbedding: 2-3               [1, 12, 512]              --
+│    └─Dropout: 2-4                           [32, 12, 512]             --
+├─Linear: 1-2                                 [32, 512, 36]             468
+├─ModuleList: 1-5                             --                        (recursive)
+│    └─TimesBlock: 2-5                        [32, 36, 512]             --
+│    │    └─Sequential: 3-3                   [32, 512, 6, 6]           599,800,832
+│    │    └─Sequential: 3-4                   [32, 512, 18, 2]          (recursive)
+│    │    └─Sequential: 3-5                   [32, 512, 4, 9]           (recursive)
+│    │    └─Sequential: 3-6                   [32, 512, 9, 4]           (recursive)
+│    │    └─Sequential: 3-7                   [32, 512, 1, 36]          (recursive)
+├─LayerNorm: 1-4                              [32, 36, 512]             1,024
+├─ModuleList: 1-5                             --                        (recursive)
+│    └─TimesBlock: 2-6                        [32, 36, 512]             --
+│    │    └─Sequential: 3-8                   [32, 512, 6, 6]           599,800,832
+│    │    └─Sequential: 3-9                   [32, 512, 4, 9]           (recursive)
+│    │    └─Sequential: 3-10                  [32, 512, 1, 36]          (recursive)
+│    │    └─Sequential: 3-11                  [32, 512, 12, 3]          (recursive)
+│    │    └─Sequential: 3-12                  [32, 512, 2, 18]          (recursive)
+├─LayerNorm: 1-6                              [32, 36, 512]             (recursive)
+├─Linear: 1-7                                 [32, 36, 7]               3,591
+===============================================================================================
+Total params: 1,199,619,547
+Trainable params: 1,199,619,547
+Non-trainable params: 0
+Total mult-adds (T): 6.91
+===============================================================================================
+Input size (MB): 0.05
+Forward/backward pass size (MB): 1432.94
+Params size (MB): 4798.48
+Estimated Total Size (MB): 6231.47
+===============================================================================================

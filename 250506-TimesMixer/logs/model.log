@@ -1,0 +1,82 @@
+Model(
+  (pdm_blocks): ModuleList(
+    (0-1): 2 x PastDecomposableMixing(
+      (layer_norm): LayerNorm((16,), eps=1e-05, elementwise_affine=True)
+      (dropout): Dropout(p=0.1, inplace=False)
+      (decompsition): series_decomp(
+        (moving_avg): moving_avg(
+          (avg): AvgPool1d(kernel_size=(25,), stride=(1,), padding=(0,))
+        )
+      )
+      (mixing_multi_scale_season): MultiScaleSeasonMixing(
+        (down_sampling_layers): ModuleList(
+          (0): Sequential(
+            (0): Linear(in_features=96, out_features=48, bias=True)
+            (1): GELU(approximate='none')
+            (2): Linear(in_features=48, out_features=48, bias=True)
+          )
+          (1): Sequential(
+            (0): Linear(in_features=48, out_features=24, bias=True)
+            (1): GELU(approximate='none')
+            (2): Linear(in_features=24, out_features=24, bias=True)
+          )
+          (2): Sequential(
+            (0): Linear(in_features=24, out_features=12, bias=True)
+            (1): GELU(approximate='none')
+            (2): Linear(in_features=12, out_features=12, bias=True)
+          )
+        )
+      )
+      (mixing_multi_scale_trend): MultiScaleTrendMixing(
+        (up_sampling_layers): ModuleList(
+          (0): Sequential(
+            (0): Linear(in_features=12, out_features=24, bias=True)
+            (1): GELU(approximate='none')
+            (2): Linear(in_features=24, out_features=24, bias=True)
+          )
+          (1): Sequential(
+            (0): Linear(in_features=24, out_features=48, bias=True)
+            (1): GELU(approximate='none')
+            (2): Linear(in_features=48, out_features=48, bias=True)
+          )
+          (2): Sequential(
+            (0): Linear(in_features=48, out_features=96, bias=True)
+            (1): GELU(approximate='none')
+            (2): Linear(in_features=96, out_features=96, bias=True)
+          )
+        )
+      )
+      (out_cross_layer): Sequential(
+        (0): Linear(in_features=16, out_features=32, bias=True)
+        (1): GELU(approximate='none')
+        (2): Linear(in_features=32, out_features=16, bias=True)
+      )
+    )
+  )
+  (preprocess): series_decomp(
+    (moving_avg): moving_avg(
+      (avg): AvgPool1d(kernel_size=(25,), stride=(1,), padding=(0,))
+    )
+  )
+  (enc_embedding): DataEmbedding_wo_pos(
+    (value_embedding): TokenEmbedding(
+      (tokenConv): Conv1d(1, 16, kernel_size=(3,), stride=(1,), padding=(1,), bias=False, padding_mode=circular)
+    )
+    (position_embedding): PositionalEmbedding()
+    (temporal_embedding): TimeFeatureEmbedding(
+      (embed): Linear(in_features=4, out_features=16, bias=False)
+    )
+    (dropout): Dropout(p=0.1, inplace=False)
+  )
+  (normalize_layers): ModuleList(
+    (0-3): 4 x Normalize()
+  )
+  (predict_layers): ModuleList(
+    (0): Linear(in_features=96, out_features=720, bias=True)
+    (1): Linear(in_features=48, out_features=720, bias=True)
+    (2): Linear(in_features=24, out_features=720, bias=True)
+    (3): Linear(in_features=12, out_features=720, bias=True)
+  )
+  (projection_layer): Linear(in_features=16, out_features=1, bias=True)
+)
+模型总参数量: 190,313
